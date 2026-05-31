@@ -2,70 +2,82 @@
 
 Create Xiaohei-style Chinese infographics and knowledge cards from articles, notes, tweets, outlines, or structured content.
 
-This Codex skill combines a clear infographic structure with Ian-style Xiaohei visual language: pure white background, black hand-drawn metaphor scenes, sparse red/orange/blue handwritten notes, and mobile-friendly information hierarchy.
+This skill is a **hybrid** of two parents: it borrows the *information architecture + render pipeline* from an infographic skill, and the *visual language* from Ian 小黑 illustrations.
+
+- **HTML/CSS owns all text** — title, thesis, section points, handwritten annotations, takeaway. Text is always crisp, never mis-spelled.
+- **`image_gen` owns the Xiaohei scenes** — each section gets a real hand-drawn 小黑 metaphor, generated **text-free on a pure-white background**, then composited into the section's image slot.
+- **Playwright** screenshots the composed page to a high-DPI PNG.
+
+The default output is ONE shareable long image: pure white, frameless side-by-side flow (illustration + text per section, alternating sides), no PPT card grid.
+
+> ⚠️ **This skill generates images — it is not pure text/HTML.**
+> - **It requires an image-generation model.** The running agent must have an `image_gen` tool (or equivalent). Without one, only the *pure-code fallback* works, and that produces icon-grade Xiaohei, not the hand-drawn look.
+> - **It is slow.** One image is generated **per section** (typically 3–5 calls), plus the Playwright render. Expect this to take noticeably longer than a text-only infographic, and to consume image-generation quota/cost. Budget time accordingly, especially if you regenerate sections during QA.
+> - **Plan for iteration.** Generated scenes sometimes need a re-roll (Xiaohei too decorative, stray text, off-metaphor), which adds more generation calls.
 
 ## What It Produces
 
-- Self-contained `750px` wide HTML long images.
-- High-DPI PNG screenshots, usually rendered at `3x`.
+- A self-contained `1080px`-wide HTML page rendered to a high-DPI PNG (3x → ~3240px wide).
 - Chinese visual summaries for WeChat, X/Twitter, Telegram, blogs, and notes.
-- Section-level Xiaohei metaphor drawings where Xiaohei performs the conceptual action, instead of acting as a decorative mascot.
-
-## Install
-
-Copy this repository into your Codex skills directory:
-
-```bash
-mkdir -p ~/.codex/skills
-git clone https://github.com/Onpicex/xiaohei-infographic.git ~/.codex/skills/xiaohei-infographic
-```
-
-Then invoke it in Codex:
-
-```text
-$xiaohei-infographic 将这篇文章整理成信息图 <URL>
-```
+- Per-section Xiaohei metaphor scenes where Xiaohei performs the conceptual action, instead of acting as a decorative mascot.
 
 ## Usage
 
 Typical prompt:
 
 ```text
-$xiaohei-infographic 把这篇文章整理成适合手机阅读的中文信息图：https://example.com/article
+把这篇文章整理成适合手机阅读的中文小黑信息图:https://example.com/article
 ```
 
-The skill asks Codex to:
+The skill will:
 
-1. Extract the title, thesis, 3-7 sections, takeaway, and source.
-2. Convert each section into a small Xiaohei action metaphor.
-3. Build a self-contained HTML poster.
-4. Render a high-DPI PNG with the bundled screenshot script.
-5. Inspect and iterate until the output is readable and visually clean.
+1. Extract the title, thesis, 3–5 sections, takeaway, and source.
+2. Invent a fresh Xiaohei action metaphor for each section.
+3. Generate each metaphor as a text-free, white-background image with `image_gen`.
+4. Fill `templates/composite-flow.html`, point the image slots at the generated scenes, add HTML annotations.
+5. Render a high-DPI PNG and run the QA gate until it's clean and phone-legible.
+
+A **pure-code fallback** (inline SVG Xiaohei, no `image_gen`) exists for zero-cost / fully-reproducible runs — it yields icon-grade Xiaohei rather than the hand-drawn look.
 
 ## Render
 
-The skill includes a screenshot helper:
-
 ```bash
-node scripts/screenshot.js input.html output.png 3 750
+node scripts/screenshot.js working.html output.png 3 1080
+python3 -c "from PIL import Image;w,h=Image.open('output.png').size;print(f'{w}x{h} 1:{h/w:.2f}')"  # target 1:1.4–1.9
 ```
 
-It uses Playwright when available. If the bundled Playwright browser is missing on macOS, it attempts to fall back to system Google Chrome.
+`screenshot.js` uses Playwright when available, and falls back to system Google Chrome on macOS if no bundled Chromium is installed.
 
 ## Repository Layout
 
 ```text
 xiaohei-infographic/
 ├── SKILL.md
-├── agents/
-│   └── openai.yaml
+├── README.md
+├── templates/
+│   └── composite-flow.html        # default scaffold — start here
 ├── references/
+│   ├── image-gen-prompt.md        # text-free white-bg 小黑 prompt + metaphor method
+│   ├── xiaohei-infographic-design.md
 │   ├── html-patterns.md
-│   └── xiaohei-infographic-design.md
-└── scripts/
-    └── screenshot.js
+│   ├── x-article-extraction.md
+│   └── qa-gate.md                 # mandatory post-render gate
+├── scripts/
+│   ├── screenshot.js
+│   └── send_telegram.sh           # lossless Telegram delivery (sendDocument)
+└── outputs/                       # durable renders
 ```
+
+## Credits
+
+This skill is a **synthesis of two existing projects**, combined here into a single hybrid (generated 小黑 scenes + HTML-owned text). Full credit and thanks to their authors:
+
+- **小黑 visual language & IP** — [helloianneo/ian-xiaohei-illustrations](https://github.com/helloianneo/ian-xiaohei-illustrations): the 小黑 character, style DNA, metaphor-invention method, and anti-copy rules.
+- **Infographic structure & render pipeline** — [jincai/openclaw-skills · infographic](https://github.com/jincai/openclaw-skills/tree/main/infographic): the information architecture, the HTML + Playwright screenshot approach, mobile-card readability, and lossless Telegram delivery.
+
+This repo only contributes the *combination*: routing each section's 小黑 to `image_gen` (text-free, white background) and compositing it into a frameless flow whose text stays crisp. If you want the parts on their own — standalone article illustrations, or a plain infographic — use the upstream projects directly.
 
 ## License
 
 MIT
+

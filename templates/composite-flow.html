@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<!--
+  composite-flow.html — xiaohei-infographic 默认脚手架(单页无框并排流)
+  ─────────────────────────────────────────────────────────────────
+  混合管线:文字 + 批注全部在 HTML;每节的小黑场景是 image_gen 生成的
+  「纯白底、绝对无文字」PNG,通过 <img class="shot"> 放进并排槽。
+
+  运行时:
+   1. 复制本文件到工作目录,改 .src 指向你这次生成的小黑图(见 RUNTIME 注释)。
+   2. 填标题 / thesis / 每节 title+points / 批注 / takeaway / footer。
+   3. node scripts/screenshot.js composite-flow.html out.png 3 1080
+   4. 目标纵横比 1:1.4–1:1.9。节数多(>5)会偏高 → 精简或拆图。
+
+  纪律(详见 references/xiaohei-infographic-design.md + qa-gate.md):
+   - 无卡片边框,靠留白分节。不要漂回 PPT 网格。
+   - 小黑必须在每节做核心动作;去掉它该节就不成立。
+   - 批注少而短(每节 1–2 处),红=问题/结果,橙=主路径,蓝=补充。
+-->
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #171717;
+  --body: #333333;
+  --muted: #76716b;
+  --line: #e8e2d8;
+  --orange: #e8752e;
+  --red: #d83a2e;
+  --blue: #2f73d9;
+  --paper: #fffefb;
+}
+
+body {
+  width: 1080px;
+  padding: 44px 72px 40px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 手写体批注:macOS 自带行/楷书,退化到 cursive */
+.hand { font-family: "Xingkai SC", "Kaiti SC", "STKaiti", "PingFang SC", cursive; }
+
+.wrap { display: flex; flex-direction: column; gap: 30px; }
+
+/* ── Header ── */
+.eyebrow {
+  align-self: flex-start;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 16px 5px;
+  font-size: 18px;
+  font-weight: 800;
+}
+h1 {
+  margin-top: 14px;
+  font-size: 50px;
+  line-height: 1.14;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+h1 .accent { color: var(--orange); }
+.subtitle { margin-top: 12px; color: var(--muted); font-size: 21px; line-height: 1.5; }
+.rule { height: 3px; background: var(--ink); margin-top: 22px; }
+
+/* ── Thesis(单个 callout,左橙边,无填充卡片感)── */
+.thesis {
+  border-left: 6px solid var(--orange);
+  padding: 6px 0 6px 22px;
+  font-size: 30px;
+  line-height: 1.5;
+  font-weight: 800;
+}
+
+/* ── Section:无边框并排流 ── */
+.section {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+.section.flip { flex-direction: row-reverse; }
+
+/* 小黑插图槽:白底无缝,固定 3:2 比例,object-fit:contain 让任意生成图都不变形 */
+.shot {
+  position: relative;
+  flex: 0 0 38%;
+}
+.shot img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background: var(--paper);
+}
+/* 批注 overlay:绝对定位在插图四周,文字清晰可控 */
+.note {
+  position: absolute;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.note.red { color: var(--red); }
+.note.orange { color: var(--orange); }
+.note.blue { color: var(--blue); }
+
+.body { flex: 1; }
+.body h2 {
+  font-size: 34px;
+  line-height: 1.25;
+  font-weight: 900;
+  margin-bottom: 14px;
+}
+.body h2 .n { color: var(--orange); margin-right: 10px; }
+.points { list-style: none; }
+.points li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--body);
+  margin-bottom: 6px;
+}
+.points li::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 14px;
+  width: 9px; height: 9px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+
+/* ── Takeaway(暗色条)── */
+.takeaway {
+  background: var(--ink);
+  color: #f8f3ea;
+  border-radius: 10px;
+  padding: 30px 34px;
+  font-size: 26px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.takeaway b { color: #ffbf58; }
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <!-- ── HEADER ── -->
+  <header>
+    <span class="eyebrow">AI 工作台 · 入门指南</span>
+    <h1>给 AI 装上手脚:<span class="accent">MCP 小白完整入门</span></h1>
+    <p class="subtitle">把这篇内容整理成手机可读的中文信息图 · 示例脚手架</p>
+    <div class="rule"></div>
+  </header>
+
+  <!-- ── THESIS ── -->
+  <p class="thesis">Skill 让 AI 知道做事的标准,MCP 让它真能伸手去网页、Chrome、文件里把事干完——这才是把模型变成工作台的关键。</p>
+
+  <!-- ── SECTIONS(奇数:图在左 / 偶数:加 .flip 图在右)── -->
+  <!-- RUNTIME: 把每个 <img> 的 src 换成本次生成的 assets/<slug>/NN.png -->
+  <section class="section">
+    <div class="shot">
+      <img src="../assets/_demo/01.png" alt="小黑把混乱任务拆成可处理的小块" />
+      <span class="note orange" style="left:2%; top:6%;">拆开 →</span>
+    </div>
+    <div class="body">
+      <h2><span class="n">01</span>先把 Skill 和 MCP 分清楚</h2>
+      <ul class="points">
+        <li>Skill 是“怎么做”的标准动作书。</li>
+        <li>MCP 是“能伸手到哪里”的通道。</li>
+        <li>两件事拼起来,AI 才真的会干活。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section flip">
+    <div class="shot">
+      <img src="../assets/_demo/02.png" alt="小黑把一个万能接口插进不同插槽" />
+      <span class="note blue" style="right:2%; bottom:8%;">一个接口</span>
+    </div>
+    <div class="body">
+      <h2><span class="n">02</span>MCP = AI 的 USB-C</h2>
+      <ul class="points">
+        <li>统一接口,不用每个服务单独接线。</li>
+        <li>Host 端发起,Server 端提供能力。</li>
+        <li>换工具不换协议,即插即用。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shot">
+      <img src="../assets/_demo/03.png" alt="小黑给工位装上几只常用工具臂" />
+      <span class="note red" style="left:2%; bottom:8%;">先装这几个</span>
+    </div>
+    <div class="body">
+      <h2><span class="n">03</span>新手先装哪几个 MCP</h2>
+      <ul class="points">
+        <li>文件系统:让 AI 能读写本地。</li>
+        <li>浏览器:让 AI 能开网页查资料。</li>
+        <li>Git:让 AI 能管代码版本。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section flip">
+    <div class="shot">
+      <img src="../assets/_demo/04.png" alt="小黑自己焊一台小机器接到主线上" />
+      <span class="note orange" style="right:2%; top:6%;">自己写</span>
+    </div>
+    <div class="body">
+      <h2><span class="n">04</span>自己写一个 MCP Server</h2>
+      <ul class="points">
+        <li>描述清楚每个工具的输入输出。</li>
+        <li>本地先跑通,再接进 Host。</li>
+        <li>能力随手加,不动上层协议。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shot">
+      <img src="../assets/_demo/05.png" alt="小黑把自己的工具挂上公共货架" />
+      <span class="note red" style="left:2%; top:6%;">让别人也能用</span>
+    </div>
+    <div class="body">
+      <h2><span class="n">05</span>上架 Registry</h2>
+      <ul class="points">
+        <li>发布后别人能直接搜索到、装上。</li>
+        <li>写清用途和权限,降低误用。</li>
+        <li>从“自己用”变成“生态里被复用”。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── TAKEAWAY ── -->
+  <p class="takeaway">四件齐了才算把 AI 工作台搭起来:<b>Skill</b> 定标准、<b>MCP</b> 给手脚、自己写补缺口、上架被复用。装哪个,就决定 AI 能替你干到哪一步。</p>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <span>来源:示例文章 · 作者 / 平台 / URL / 日期</span>
+    <span>xiaohei-infographic · 小黑信息图</span>
+  </footer>
+
+</main>
+</body>
+</html>

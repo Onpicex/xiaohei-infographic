@@ -1,9 +1,16 @@
 .DS_Store
 node_modules/
 *.log
+
+# 信息图运行产物(不进仓库)
 outputs/
+assets/
 *.png
 *.jpg
 *.jpeg
 *.webp
 *.gif
+
+# templates/ 只保留默认脚手架,忽略运行时填好的工作副本 HTML
+templates/*
+!templates/composite-flow.html
