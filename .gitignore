@@ -14,3 +14,6 @@ assets/
 # templates/ 只保留默认脚手架,忽略运行时填好的工作副本 HTML
 templates/*
 !templates/composite-flow.html
+
+# README 示例图(放行,绕过 *.png)
+!docs/life_audit.png
